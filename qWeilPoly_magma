@@ -1,0 +1,547 @@
+/* vim: set syntax=magma :*/
+
+function integers_in_closed_real_range(a,b : precision:=53, tollerance:=0.5)
+// given real numbers a and b returns [a,b] \cat ZZ
+    E := -precision*tollerance;
+    if Abs(a-Round(a)) lt 10^E then
+        l := Round(a);
+    else
+        l := Integers()!Floor(a) + 1;
+    end if;
+    if Abs(b-Round(b)) lt 10^E then
+        r := Round(b);
+    else
+        r := Integers()!(Floor(b));
+    end if;
+    return [l..r];
+end function;
+
+function qWeilPolyDeg2(q)
+// based on Example 4.3
+    R<x> := PolynomialRing(Integers());
+    assert IsPrimePower(q);
+    output := [];
+    sq := Sqrt(q);   
+    sq_2 := sq*2;
+    for a in integers_in_closed_real_range(-sq_2,sq_2) do
+        Append(~output,R![q,a,1]);
+    end for;
+    return output;
+end function;
+
+function qWeilPolyDeg4(q)
+// based on Prop 4.7
+    R<x> := PolynomialRing(Integers());
+    assert IsPrimePower(q);
+    output := [];
+    q_2 := q*2;
+    qq := q^2;
+    sq := Sqrt(q);
+    sq_2 := sq*2;
+    sq_4 := sq*4;
+    for a in integers_in_closed_real_range(-sq_4,sq_4) do
+        aq := a*q;
+        for b in integers_in_closed_real_range(-q_2+sq_2*Abs(a),q_2+a^2/4) do
+            Append(~output,R![qq,aq,b,a,1]);
+        end for;
+    end for;
+    return output;
+end function;
+
+function qWeilPolyDeg6(q)
+// based on Main Thm B
+    R<x> := PolynomialRing(Integers());
+    assert IsPrimePower(q);
+    output := [];
+    q_2 := 2*q;
+    q_3 := 3*q;
+    q_9 := 9*q;
+    sq := Sqrt(q);
+    sq_2 := 2*sq;
+    sq_4 := 4*sq;
+    sq_6 := 6*sq;
+    qsq_2 := q_2*sq;
+    FRAC := 2/27;
+    qq := q^2;
+    qqq := q^3;
+    for a1 in integers_in_closed_real_range(-sq_6,sq_6) do
+        a1a1_q_9 := a1^2+q_9;
+        A1_q_a1 := -FRAC*a1^3 + q*a1;
+        a1_third := a1/3;
+        C := -q_2*a1;
+        qqa1 := a1*qq;
+        for a2 in integers_in_closed_real_range(sq_4*Abs(a1)-q_9,a1^2/3+q_3) do
+            //we merge conditions (c) and (d) into one loop.
+            A := A1_q_a1+a1_third*a2;
+            B := FRAC*(Sqrt(a1a1_q_9-3*a2))^3;
+            D := sq_2*a2 + qsq_2;
+            bd1 := Max(A - B, C - D);
+            bd2 := Min(A + B, C + D);
+            qa2 := a2*q;
+            for a3 in integers_in_closed_real_range(bd1,bd2) do
+                Append(~output,R![qqq,qqa1,qa2,a3,a2,a1,1]);
+            end for;
+        end for;
+    end for;
+    return output;
+end function;
+
+function qWeilPolyDeg8(q : precision:=100)
+// based on Main Thm C
+    R<x> := PolynomialRing(Integers());
+    assert IsPrimePower(q);
+    CC := ComplexField(precision);
+    RR := RealField(precision);
+    output := [];
+    qq := q^2;
+    qqq := q^3;
+    qqqq := qq^2;
+    sq := Sqrt(q);
+    sq_8 := 8*sq;
+    sq_6 := 6*sq;
+    q_20 := 20*q;
+    FRAC1 := 3/8;
+    q_4 := 4*q;
+    FRAC2 := 3/16;
+    q_2 := 2*q;
+    qsq_16 := 16*q*sq;
+    FRAC3 := 4/27;
+    assert exists(z){x[1] : x in Roots(PolynomialRing(CC)![-1,0,0,1]) | not IsReal(x[1]) };
+    sq_2 := 2*sq;
+    FRAC4 := 3/256;
+    qq2 := 2*qq;
+    for a1 in integers_in_closed_real_range(-sq_8,sq_8:precision:=precision) do
+        a1a1 := a1^2;
+        a1a1a1 := a1^3;
+        a1a1a1a1 := a1^4;
+        a1q := q*a1;
+        a1qqq := a1*qqq;
+        A1 := -1/8*a1a1a1+a1q;
+        D1 := 9*a1a1 + 96*q;
+        a1q_9 := 9*a1q;
+        a1q__4 := a1q/4;
+        a1a1q := a1a1*q;
+        a1a1a1__32 := a1a1a1/32;
+        for a2 in integers_in_closed_real_range(sq_6*Abs(a1)-q_20 , FRAC1*a1a1 + q_4 : precision:=precision) do
+            u2 := -FRAC2*a1a1 + a2/2 - q_2;
+            u2u2 := u2^2;
+            u2u2u2 := u2^3;
+            a2sq_4 := 4*sq*a2;
+            a1a2 := a1*a2;
+            A := A1 + a1a2/2;
+            D := (Sqrt(RR!(D1-24*a2)^3))/216;
+            bd1 := Max(-a2sq_4-a1q_9-qsq_16 , A-D);
+            bd2 := Min(a2sq_4-a1q_9+qsq_16, A+D);
+            B := -q_2*a2-2*qq;
+            a2qq := a2*qq;
+            a1a1a2 := a1a1*a2;
+            a2q_2 := 2*a2*q;
+            a1a2__8 := a1a2/8;
+            for a3 in integers_in_closed_real_range(bd1,bd2) do
+                a3q := a3*q;
+                u3 := -a1a1a1__32+a1a2__8+a1q__4-a3/4;
+                u3u3 := u3^2;
+                sqDD := Sqrt(CC!u3u3 + FRAC3*u2u2u2);
+                if u3 eq sqDD then
+                    w := 0;
+                else
+                    w := ((-u3+sqDD)/2)^(1/3);
+                end if;
+                S := (9*u3+3*sqDD)/2;
+                Sw := S*w;
+                Swc := ComplexConjugate(S*w);
+                S := [ -z^k*Sw-z^(-k)*Swc+2/3*u2u2 : k in [0..2] ];
+                assert forall{ x : x in S | Abs(Im(x)) lt 10^-10 };
+                S := Sort([ Re(x) : x in S ]);
+                theta1 := S[1];
+                theta2 := S[2];
+                C := FRAC4*a1a1a1a1 - a1a1a2/16 -a1a1q/2 +a1*a3/4 + a2q_2 - qq2;
+                bd3 := Max(sq_2*Abs(a1q+a3)+B , C + theta1);
+                bd4 := C + theta2;
+                for a4 in integers_in_closed_real_range(bd3,bd4:precision:=precision) do
+                    Append(~output,R![qqqq,a1qqq,a2qq,a3q,a4,a3,a2,a1,1]);
+                end for;
+            end for;
+        end for;
+    end for;
+    return output;
+end function;
+test:=qWeilPolyDeg8(2);
+
+function qWeilPolyDeg10(q : precision:=100)
+// based on Main Thm D
+    R<x> := PolynomialRing(Integers());
+    assert IsPrimePower(q);
+    CC := ComplexField(precision);
+    RR := RealField(precision);
+    RRR<xx> := PolynomialRing(RR);
+    output := [];
+    q_ := [ q^i : i in [1..5]];
+    q20 := 20*q;
+    q50 := 50*q;
+    sq := Sqrt(RR!q);
+    sq_10 := 10*sq;
+    sq_8 := 8*sq;
+    assert exists(z){x[1] : x in Roots(PolynomialRing(CC)![-1,0,0,1]) | not IsReal(x[1]) };
+    sqq50 := 50*q*sq;
+    for a1 in integers_in_closed_real_range(-sq_10,sq_10:precision:=precision) do
+        a1_ := [ a1^i : i in [1..5]];
+        a1q := a1*q;
+        D3 := -q20*a1;
+        B31 := 4*a1_[2]+q50;
+        for a2 in integers_in_closed_real_range(sq_8*Abs(a1)-35*q , 2/5*a1_[2]+5*q : precision:=precision) do
+            a2q := a2*q;
+            AA := a1*(3/5*a2+q);
+            A3 := -4/25*a1_[3] + AA;
+            B3 := 1/50*Sqrt( RR!(B31-10*a2)^3 );
+            C3 := 6*sq*a2+sqq50;
+            bd1 := Max(A3-B3,-C3+D3);
+            bd2 := Min(A3+B3,C3+D3);
+            u2 := -3/25*a1_[2]+3/10*a2-3/2*q;
+            u2_ := [ u2^i : i in [1..3]];
+            BB5 := 2*q*sq*a2+2*q_[2]*sq;
+            AAA := a1_[2]*(3/25*a2+q);
+            AAA4 := 3/125*a1_[4]-AAA+3*a2q-5*q_[2];
+            for a3 in integers_in_closed_real_range(bd1,bd2) do
+                //printf "a1,a2,a3 = %o,%o,%o\n",a1,a2,a3;
+                a1a3 := a1*a3;
+                u3 := 2/125*a1_[3]-AA/10+a3/10;
+                u3u3 := u3^2;
+                V3 := -2/27*u2_[3]-2*u3u3;
+                sqDD := Sqrt(CC!(u3u3 + 4/27*u2_[3]));
+                if u3 eq sqDD then
+                    w := 0;
+                else
+                    w := ((-u3+sqDD)/2)^(1/3);
+                end if;
+                S := (9*u3+3*sqDD)/2;
+                Sw := S*w;
+                Swc := ComplexConjugate(S*w);
+                S := [ -z^k*Sw-z^(-k)*Swc+2/3*u2_[2] : k in [0..2] ];
+                assert forall{x : x in S | Abs(Im(x)) lt 10^-10 };
+                S := Sort([ Re(x) : x in S ]);
+                theta1 := S[1];
+                theta2 := S[2];
+                A4 := AAA4+2/5*a1a3;
+                bd3 := Max(4*sq*Abs(4*a1q+a3)-9*a2q-25*q_[2] , A4 + 5*theta1);
+                bd4 := A4 + 5*theta2;
+                U4 := -A4/5;
+                AAAA := -4/3125*a1_[5]+1/125*a1_[3]*(a2+15*q)-1/25*a1_[2]*a3-1/5*a1*(3*a2*q+5*q_[2])+2*a3*q;
+                C5 := -2*q*a3-2*q_[2]*a1;
+                for a4 in integers_in_closed_real_range(bd3,bd4:precision:=precision) do
+                    u4 := U4 + a4/5;
+                    if u3 eq 0 then
+                        U := Sqrt(RR!(u2_[2]-u4));
+                        SS := [ i1*Sqrt(-u2+i2*U) : i1,i2 in [-1,1]];
+                    else
+                        v2 := -u2_[2]/3-u4;
+                        v2_ := [v2^i : i in [1..3]];
+                        v3 := 2/3*u2*u4+V3;
+                        if v2 eq 0 then
+                            C := (CC!(-v3))^(1/3);
+                            y := C - 2/3*u2;
+                        else
+                            C := (1/2*(CC!(-v3 + Sqrt(RR!(v3^2+4/27*v2_[3])))))^(1/3);
+                            y := C - v2/(3*C) - 2/3*u2;
+                        end if;
+                        assert Abs(Im(y)) lt 10^-10;
+                        y := Re(y);
+                        sqy2 := Sqrt(CC!(2*y));
+                        SS := [ (i1*sqy2 + i2*Sqrt(CC!(-4*u2 -2*y - i1*8*u3/sqy2)))/2 : i1,i2 in [-1,1] ];
+                    end if;
+                    // print([ CC(x) for x in SS])
+                    try
+                        assert forall{ x : x in SS |Abs(Im(x)) lt 10^-10 };
+                    catch e 
+                        print u3,SS;
+                    end try;
+                    SS := Sort([ Re(x) : x in SS ]);
+                    H := RRR![0,-5*u4,-10*u3,-10/3*u2,0,-1];
+                    Lambda1 := Max(Evaluate(H,SS[1]),Evaluate(H,SS[3]));
+                    Lambda2 := Min(Evaluate(H,SS[2]),Evaluate(H,SS[4]));
+                    A := AAAA+1/5*a1*a4;
+                    B5 := 2*sq*a4+BB5;
+                    bd5 := Max( -B5+C5 , Lambda1+A);
+                    bd6 := Min( B5+C5 , Lambda2+A );
+                    for a5 in integers_in_closed_real_range(bd5,bd6:precision:=precision) do
+                        Append(~output,(R![q_[5],a1*q_[4],a2*q_[3],a3*q_[2],a4*q,a5,a4,a3,a2,a1,1]));
+                    end for;
+                end for;
+            end for;
+        end for;
+    end for;
+    return output;;
+end function;
+
+// TESTing functions for degrees 2,4,6,8,10
+function test_deg_2(q)
+    is_sq,sq:=IsSquare(q);
+    if not is_sq then
+        sq:=Sqrt(q);
+    end if;
+    my_output := qWeilPolyDeg2(q);
+    R:=Parent(my_output[1]);
+    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_2_" cat IntegerToString(q)))];
+    // test if my output coincides with kedlaya's
+    test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
+    // test description of real roots
+    my_output_rr := [h : h in my_output | Abs(Evaluate(h,sq)) lt 10^-10 or Abs(Evaluate(h,-sq)) lt 10^-10 ];
+    my_output_rr_test := [];
+    if IsSquare(q) then
+        my_output_rr_test cat:= [R![q,2*sq,1],R![q,-2*sq,1]];
+    end if;
+    test_rr:=Seqset(my_output_rr) eq Seqset(my_output_rr_test);
+    return test_list,test_rr,my_output,my_output_rr,my_output_rr_test;
+end function;
+
+
+function test_deg_4(q)
+    is_sq,sq:=IsSquare(q);
+    if not is_sq then
+        sq:=Sqrt(q);
+    end if;
+    my_output := qWeilPolyDeg4(q);
+    R:=Parent(my_output[1]);
+    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_4_" cat IntegerToString(q)))];
+
+    // test if my output coincides with kedlaya's
+    test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
+
+    // test real roots explicit list
+    my_output_rr := [h : h in my_output | Abs(Evaluate(h,sq)) lt 10^-10 or Abs(Evaluate(h,-sq)) lt 10^-10 ];
+    my_output_rr_test := [ R![q^2,0,-2*q,0,1] ];
+    if IsSquare(q) then
+        my_output_deg2:=qWeilPolyDeg2(q);
+        hm:=R![q,-2*sq,1];
+        hp:=R![q,+2*sq,1];
+        for h in my_output_deg2 do
+            my_output_rr_test cat:= [h*hp,h*hm];
+        end for;
+    end if;
+    test_rr:=Seqset(my_output_rr) eq Seqset(my_output_rr_test);
+    
+    // test real roots coefficients
+    my_output_rr_test_2 := [];
+    for h in my_output do
+        cc := Reverse(Coefficients(h));
+        a := cc[2];
+        b := cc[3];
+        if Abs(a) eq 4*sq or -2*q+2*sq*Abs(a) eq b then
+            Append(~my_output_rr_test_2,h);
+        end if;
+    end for;
+    test_rr_2:=Seqset(my_output_rr) eq Seqset(my_output_rr_test_2);
+    return test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2;
+end function;
+
+function test_deg_6(q)
+    is_sq,sq:=IsSquare(q);
+    if not is_sq then
+        sq:=Sqrt(q);
+    end if;
+    my_output := qWeilPolyDeg6(q);
+    R:=Parent(my_output[1]);
+    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_6_" cat IntegerToString(q)))];
+
+    // test if my output coincides with kedlaya's
+    test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
+
+    // test real roots explicit list
+    my_output_rr := [h : h in my_output | Abs(Evaluate(h,sq)) lt 10^-10 or Abs(Evaluate(h,-sq)) lt 10^-10 ];
+    if not IsSquare(q) then
+        my_output_deg2:=qWeilPolyDeg2(q);
+        hh:=(R![-q,0,1])^2;
+        my_output_rr_test := [hh*h : h in my_output_deg2];
+    else
+        my_output_deg2_norr:=[ h : h in qWeilPolyDeg2(q) | Evaluate(h,sq) ne 0 and Evaluate(h,-sq) ne 0 ];
+        my_output_deg4_norr:=[ h : h in qWeilPolyDeg4(q) | Evaluate(h,sq) ne 0 and Evaluate(h,-sq) ne 0 ];
+        my_output_rr_test := [];
+        for k in [0..3] do
+            for l in [0..3] do
+                if l+k eq 3 then
+                    Append(~my_output_rr_test,(R![sq,1])^(2*k)*(R![-sq,1])^(2*l));
+                elif l+k eq 2 then
+                    hh:=(R![sq,1])^(2*k)*(R![-sq,1])^(2*l);
+                    my_output_rr_test cat:=[hh*h : h in my_output_deg2_norr ];
+                elif l+k eq 1 then
+                    hh:=(R![sq,1])^(2*k)*(R![-sq,1])^(2*l);
+                    my_output_rr_test cat:=[hh*h : h in my_output_deg4_norr ];
+                end if;
+            end for;
+        end for;
+    end if;
+    test_rr:=Seqset(my_output_rr) eq Seqset(my_output_rr_test);
+    
+    // test real roots coefficients
+    my_output_rr_test_2 := [];
+    for h in my_output do 
+        cc := Reverse(Coefficients(h));
+        a1 := cc[2];
+        a2 := cc[3];
+        a3 := cc[4];
+        eps:=10^-10;
+        if Abs(Abs(a1) - 6*sq) lt eps or 
+           Abs(4*sq*Abs(a1)-9*q - a2) lt eps or 
+           Abs(Abs(a3+2*q*a1) - (2*sq*a2+2*q*sq)) lt eps then
+            Append(~my_output_rr_test_2,h);
+        end if;
+    end for;
+    test_rr_2:=Seqset(my_output_rr) eq Seqset(my_output_rr_test_2);
+    return test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2;
+end function;
+
+function test_deg_8(q : precision:=100)
+    is_sq,sq:=IsSquare(q);
+    if not is_sq then
+        sq:=Sqrt(q);
+    end if;
+
+    my_output := qWeilPolyDeg8(q:precision:=precision);
+    R:=Parent(my_output[1]);
+    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_8_" cat IntegerToString(q)))];
+
+    // test if my output coincides with kedlaya's
+    test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
+
+    // test real roots explicit list
+    my_output_rr := [h : h in my_output | Abs(Evaluate(h,sq)) lt 10^-10 or Abs(Evaluate(h,-sq)) lt 10^-10 ];
+    if not IsSquare(q) then
+        my_output_deg4:=qWeilPolyDeg4(q);
+        hh:=(R![-q,0,1])^2;
+        my_output_rr_test := [hh*h : h in my_output_deg4];
+    else
+        my_output_deg6:=qWeilPolyDeg6(q);
+        my_output_rr_test := [];
+        hp := (R![sq,1])^2;
+        hm := (R![-sq,1])^2;
+        my_output_rr_test := [hp*h : h in my_output_deg6] cat  [hm*h : h in my_output_deg6];
+    end if;
+    test_rr:=Seqset(my_output_rr) eq Seqset(my_output_rr_test);
+    
+    // test real roots coefficients
+    my_output_rr_test_2 := [];
+    for h in my_output do 
+        cc := Reverse(Coefficients(h));
+        a1 := cc[2];
+        a2 := cc[3];
+        a3 := cc[4];
+        a4 := cc[5];
+        eps:=10^-10;
+        if Abs(Abs(a1) - 8*sq) lt eps or 
+           Abs(a2 - (6*sq*Abs(a1)-20*q)) lt eps or 
+           Abs(Abs(a3+9*q*a1) - (4*sq*a2+16*q*sq)) lt eps or 
+           Abs(a4 - (2*sq*Abs(a1*q+a3)-2*q*a2-2*q^2)) lt eps then
+            Append(~my_output_rr_test_2,h);
+        end if;
+    end for;
+    test_rr_2:=Seqset(my_output_rr) eq Seqset(my_output_rr_test_2);
+    return test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2;
+end function;
+
+function test_deg_10(q : precision:=100)
+    is_sq,sq:=IsSquare(q);
+    if not is_sq then
+        sq:=Sqrt(q);
+    end if;
+
+    my_output := qWeilPolyDeg10(q:precision:=precision);
+    R:=Parent(my_output[1]);
+    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_10_" cat IntegerToString(q)))];
+
+    // test if my output coincides with kedlaya's
+    test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
+
+    // test real roots explicit list
+    my_output_rr := [h : h in my_output | Abs(Evaluate(h,sq)) lt 10^-10 or Abs(Evaluate(h,-sq)) lt 10^-10 ];
+    if not IsSquare(q) then
+        my_output_deg6:=qWeilPolyDeg6(q);
+        hh:=(R![-q,0,1])^2;
+        my_output_rr_test := [hh*h : h in my_output_deg6];
+    else
+        my_output_deg8:=qWeilPolyDeg8(q);
+        my_output_rr_test := [];
+        hp := (R![sq,1])^2;
+        hm := (R![-sq,1])^2;
+        my_output_rr_test := [hp*h : h in my_output_deg8] cat  [hm*h : h in my_output_deg8];
+    end if;
+    test_rr:=Seqset(my_output_rr) eq Seqset(my_output_rr_test);
+    
+    // test real roots coefficients
+    my_output_rr_test_2 := [];
+    for h in my_output do 
+        cc := Reverse(Coefficients(h));
+        a1 := cc[2];
+        a2 := cc[3];
+        a3 := cc[4];
+        a4 := cc[5];
+        a5 := cc[6];
+        eps:=10^-10;
+        if Abs(Abs(a1) - 10*sq) lt eps or 
+           Abs(a2 - (8*sq*Abs(a1)-35*q)) lt eps or 
+           Abs(Abs(a3+20*q*a1) - (6*sq*a2+50*q*sq)) lt eps or 
+           Abs(a4 -(4*sq*Abs(4*q*a1+a3)-9*q*a2-25*q^2)) lt eps or 
+           Abs(Abs(a5+2*q*a3+2*q^2*a1) - (2*sq*a4+2*q*sq*a2+2*q^2*sq)) lt eps then
+            Append(~my_output_rr_test_2,h);
+        end if;
+    end for;
+    test_rr_2:=Seqset(my_output_rr) eq Seqset(my_output_rr_test_2);
+    return test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2;
+end function;
+
+// TEST loop
+
+files:=Split(Pipe("find ~/IsogenyClassesLowDimTestCode/kedlaya_weil_poly_*","r"));
+deg_q_s:=[ [eval(sp[#sp-1]),eval(sp[#sp])] where sp:=Split(file,"_")  : file in files ];
+Sort(~deg_q_s);
+for deg_q in deg_q_s do
+    deg:=deg_q[1];
+    q:=deg_q[2];
+    is_sq,sq:=IsSquare(q);
+    if not is_sq then
+        sq:=Sqrt(q);
+    end if;
+
+    if deg eq 2 then
+        printf "testing deg = %o q = %o...",deg,q;
+        t0:=Cputime();
+        test_list,test_rr,my_output,my_output_rr,my_output_rr_test:=test_deg_2(q);
+        t1:=Cputime(t0);
+        printf "time = %o sec...",t1;
+        assert test_list and test_rr;
+        printf "all good!\n";
+    elif deg eq 4 then
+        printf "testing deg = %o q = %o...",deg,q;
+        t0:=Cputime();
+        test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2:=test_deg_4(q);
+        t1:=Cputime(t0);
+        printf "time = %o sec...",t1;
+        assert test_list and test_rr and test_rr_2;
+        printf "all good!\n";
+    elif deg eq 6 then
+        printf "testing deg = %o q = %o...",deg,q;
+        t0:=Cputime();
+        test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2:=test_deg_6(q);
+        t1:=Cputime(t0);
+        printf "time = %o sec...",t1;
+        assert test_list and test_rr and test_rr_2;
+        printf "all good!\n";
+    elif deg eq 8 then
+        printf "testing deg = %o q = %o...",deg,q;
+        t0:=Cputime();
+        test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2:=test_deg_8(q);
+        t1:=Cputime(t0);
+        printf "time = %o sec...",t1;
+        assert test_list and test_rr and test_rr_2;
+        printf "all good!\n";
+    elif deg eq 10 then
+        printf "testing deg = %o q = %o...",deg,q;
+        t0:=Cputime();
+        test_list,test_rr,test_rr_2,my_output,my_output_rr,my_output_rr_test,my_output_rr_test_2:=test_deg_10(q);
+        t1:=Cputime(t0);
+        printf "time = %o sec...",t1;
+        assert test_list and test_rr and test_rr_2;
+        printf "all good!\n";
+    end if;
+end for;
+
+quit;
