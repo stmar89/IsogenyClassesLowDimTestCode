@@ -281,7 +281,7 @@ function test_deg_2(q)
     end if;
     my_output := qWeilPolyDeg2(q);
     R:=Parent(my_output[1]);
-    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_2_" cat IntegerToString(q)))];
+    kedlayas_output:=[R!eval(c):c in Split(Read("kedlaya_weil_poly_2_" cat IntegerToString(q)))];
     // test if my output coincides with kedlaya's
     test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
     // test description of real roots
@@ -302,7 +302,7 @@ function test_deg_4(q)
     end if;
     my_output := qWeilPolyDeg4(q);
     R:=Parent(my_output[1]);
-    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_4_" cat IntegerToString(q)))];
+    kedlayas_output:=[R!eval(c):c in Split(Read("kedlaya_weil_poly_4_" cat IntegerToString(q)))];
 
     // test if my output coincides with kedlaya's
     test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
@@ -341,7 +341,7 @@ function test_deg_6(q)
     end if;
     my_output := qWeilPolyDeg6(q);
     R:=Parent(my_output[1]);
-    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_6_" cat IntegerToString(q)))];
+    kedlayas_output:=[R!eval(c):c in Split(Read("kedlaya_weil_poly_6_" cat IntegerToString(q)))];
 
     // test if my output coincides with kedlaya's
     test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
@@ -398,7 +398,7 @@ function test_deg_8(q : precision:=100)
 
     my_output := qWeilPolyDeg8(q:precision:=precision);
     R:=Parent(my_output[1]);
-    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_8_" cat IntegerToString(q)))];
+    kedlayas_output:=[R!eval(c):c in Split(Read("kedlaya_weil_poly_8_" cat IntegerToString(q)))];
 
     // test if my output coincides with kedlaya's
     test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
@@ -446,7 +446,7 @@ function test_deg_10(q : precision:=100)
 
     my_output := qWeilPolyDeg10(q:precision:=precision);
     R:=Parent(my_output[1]);
-    kedlayas_output:=[R!eval(c):c in Split(Read("~/IsogenyClassesLowDim/testing_with_code/kedlaya_weil_poly_10_" cat IntegerToString(q)))];
+    kedlayas_output:=[R!eval(c):c in Split(Read("kedlaya_weil_poly_10_" cat IntegerToString(q)))];
 
     // test if my output coincides with kedlaya's
     test_list:=Seqset(my_output) eq Seqset(kedlayas_output);
@@ -490,7 +490,7 @@ end function;
 
 // TEST loop
 
-files:=Split(Pipe("find ~/IsogenyClassesLowDimTestCode/kedlaya_weil_poly_*","r"));
+files:=Split(Pipe("find kedlaya_weil_poly_*","r"));
 deg_q_s:=[ [eval(sp[#sp-1]),eval(sp[#sp])] where sp:=Split(file,"_")  : file in files ];
 Sort(~deg_q_s);
 for deg_q in deg_q_s do
