@@ -7,14 +7,19 @@ The test-routines include also checks for all provided descriptions of q-Weil-Po
 
 The purpose of the code is to test the output against the one produced by the SageMath function `weil_polynomials(deg,q)` which is based on https://github.com/kedlaya/root-unitary.
 In the repository, we include a tar.gz file with the output of the SageMath function for several q's (which useful especially if a recent enough version of SageMath is not installed).
-If one want to run test for more prime powers q, one can use `create_qWeilPoly_using_kedlaya.py`, which might require quite some time and memory.
 
 ### Instructions for testing ###
 1) clone this repository and cd into the folder `IsogenyClassesLowDimTestCode/`
-2) extract the tar.gz
+2) extract the tar.gz.
 ```
     tar -xzvf kedlaya_weil_poly.tar.gz
 ```
+This include file for testinng for q-Weil polynomials with q a prime power between 2 and 9 of degree 2g with g=1,2,3,4 and q=2,3,4 for g=5.
+If one want to run test for more prime powers q, one can you modify the file `create_qWeilPoly_using_kedlaya.sage`and then run
+```
+    sage create_qWeilPoly_using_kedlaya.sage
+````
+which might require quite some time and memory.
 4) run
 ```
     magma qWeilPoly_magma
