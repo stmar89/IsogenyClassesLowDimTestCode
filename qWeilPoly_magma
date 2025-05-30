@@ -30,7 +30,7 @@ function qWeilPolyDeg2(q)
 end function;
 
 function qWeilPolyDeg4(q)
-// based on Prop 4.7
+// based on Prop 4.8
     R<x> := PolynomialRing(Integers());
     assert IsPrimePower(q);
     output := [];
@@ -49,7 +49,7 @@ function qWeilPolyDeg4(q)
 end function;
 
 function qWeilPolyDeg6(q)
-// based on Main Thm B
+// based on Main Thm A
     R<x> := PolynomialRing(Integers());
     assert IsPrimePower(q);
     output := [];
@@ -87,7 +87,7 @@ function qWeilPolyDeg6(q)
 end function;
 
 function qWeilPolyDeg8(q : precision:=100)
-// based on Main Thm C
+// based on Main Thm B
     R<x> := PolynomialRing(Integers());
     assert IsPrimePower(q);
     CC := ComplexField(precision);
@@ -107,6 +107,7 @@ function qWeilPolyDeg8(q : precision:=100)
     qsq_16 := 16*q*sq;
     FRAC3 := 4/27;
     assert exists(z){x[1] : x in Roots(PolynomialRing(CC)![-1,0,0,1]) | not IsReal(x[1]) };
+    // z is a primitive third root of unity
     sq_2 := 2*sq;
     FRAC4 := 3/256;
     qq2 := 2*qq;
@@ -123,6 +124,7 @@ function qWeilPolyDeg8(q : precision:=100)
         a1a1q := a1a1*q;
         a1a1a1__32 := a1a1a1/32;
         for a2 in integers_in_closed_real_range(sq_6*Abs(a1)-q_20 , FRAC1*a1a1 + q_4 : precision:=precision) do
+            // we merge conditions (c) and (d) in a single loop
             u2 := -FRAC2*a1a1 + a2/2 - q_2;
             u2u2 := u2^2;
             u2u2u2 := u2^3;
@@ -151,7 +153,7 @@ function qWeilPolyDeg8(q : precision:=100)
                 Sw := S*w;
                 Swc := ComplexConjugate(S*w);
                 S := [ -z^k*Sw-z^(-k)*Swc+2/3*u2u2 : k in [0..2] ];
-                assert forall{ x : x in S | Abs(Im(x)) lt 10^-10 };
+                assert forall{ x : x in S | Abs(Im(x)) lt 10^-10 }; // S c RR
                 S := Sort([ Re(x) : x in S ]);
                 theta1 := S[1];
                 theta2 := S[2];
@@ -166,10 +168,9 @@ function qWeilPolyDeg8(q : precision:=100)
     end for;
     return output;
 end function;
-test:=qWeilPolyDeg8(2);
 
 function qWeilPolyDeg10(q : precision:=100)
-// based on Main Thm D
+// based on Main Thm C
     R<x> := PolynomialRing(Integers());
     assert IsPrimePower(q);
     CC := ComplexField(precision);
@@ -190,6 +191,7 @@ function qWeilPolyDeg10(q : precision:=100)
         D3 := -q20*a1;
         B31 := 4*a1_[2]+q50;
         for a2 in integers_in_closed_real_range(sq_8*Abs(a1)-35*q , 2/5*a1_[2]+5*q : precision:=precision) do
+            // we merge conditions (c) and (d) in a single loop
             a2q := a2*q;
             AA := a1*(3/5*a2+q);
             A3 := -4/25*a1_[3] + AA;
@@ -203,6 +205,7 @@ function qWeilPolyDeg10(q : precision:=100)
             AAA := a1_[2]*(3/25*a2+q);
             AAA4 := 3/125*a1_[4]-AAA+3*a2q-5*q_[2];
             for a3 in integers_in_closed_real_range(bd1,bd2) do
+                // we merge conditions (e) and (f) in a single loop
                 //printf "a1,a2,a3 = %o,%o,%o\n",a1,a2,a3;
                 a1a3 := a1*a3;
                 u3 := 2/125*a1_[3]-AA/10+a3/10;
@@ -218,7 +221,7 @@ function qWeilPolyDeg10(q : precision:=100)
                 Sw := S*w;
                 Swc := ComplexConjugate(S*w);
                 S := [ -z^k*Sw-z^(-k)*Swc+2/3*u2_[2] : k in [0..2] ];
-                assert forall{x : x in S | Abs(Im(x)) lt 10^-10 };
+                assert forall{x : x in S | Abs(Im(x)) lt 10^-10 }; // S c RR
                 S := Sort([ Re(x) : x in S ]);
                 theta1 := S[1];
                 theta2 := S[2];
@@ -229,6 +232,7 @@ function qWeilPolyDeg10(q : precision:=100)
                 AAAA := -4/3125*a1_[5]+1/125*a1_[3]*(a2+15*q)-1/25*a1_[2]*a3-1/5*a1*(3*a2*q+5*q_[2])+2*a3*q;
                 C5 := -2*q*a3-2*q_[2]*a1;
                 for a4 in integers_in_closed_real_range(bd3,bd4:precision:=precision) do
+                    // we merge (g) and (h) in a single loop
                     u4 := U4 + a4/5;
                     if u3 eq 0 then
                         U := Sqrt(RR!(u2_[2]-u4));
@@ -249,13 +253,10 @@ function qWeilPolyDeg10(q : precision:=100)
                         sqy2 := Sqrt(CC!(2*y));
                         SS := [ (i1*sqy2 + i2*Sqrt(CC!(-4*u2 -2*y - i1*8*u3/sqy2)))/2 : i1,i2 in [-1,1] ];
                     end if;
-                    // print([ CC(x) for x in SS])
-                    try
-                        assert forall{ x : x in SS |Abs(Im(x)) lt 10^-10 };
-                    catch e 
-                        print u3,SS;
-                    end try;
+                    // SS contains the elemenets x_{i1,i2} for i1,i2 in {+1,-1},
+                    assert forall{ x : x in SS |Abs(Im(x)) lt 10^-10 };
                     SS := Sort([ Re(x) : x in SS ]);
+                    // after sorting, we have S[i]=gamma_i
                     H := RRR![0,-5*u4,-10*u3,-10/3*u2,0,-1];
                     Lambda1 := Max(Evaluate(H,SS[1]),Evaluate(H,SS[3]));
                     Lambda2 := Min(Evaluate(H,SS[2]),Evaluate(H,SS[4]));
